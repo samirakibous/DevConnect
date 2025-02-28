@@ -97,6 +97,6 @@ class PostController extends Controller
 
         $post->hashtags()->sync($request->tags ?? []);
 
-        return redirect()->route('posts.edit', $post->id)->with('success', 'Post mis à jour avec succès.');
+        return redirect()->route('posts.index', $post->id)->with('success', 'Post mis à jour avec succès.');
     }
 }

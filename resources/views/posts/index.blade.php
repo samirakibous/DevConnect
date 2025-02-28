@@ -651,7 +651,7 @@
                             <h3 class="text-xl font-bold mb-6">Comments ({{ $post->comments->count() }})</h3>
                             <div class="space-y-6">
                                 <!-- Comment Input -->
-                                <form action="" method="POST">
+                                <form action="{{route('comment.store', $post)}}" method="POST">
                                     @csrf
                                     <div class="flex items-start space-x-4">
                                         <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
