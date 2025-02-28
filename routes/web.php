@@ -29,9 +29,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::resource('/posts', PostController::class)->only(['index']);
+    Route::delete('/posts/{id}', [PostController::class, 'destroy'])->name('posts.destroy');
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
 });
 
 
 
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
