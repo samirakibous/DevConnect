@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::post('/comment/post/{post}', [CommentController::class, 'store'])->name('comment.store');
+    Route::post('/posts/{id}/like', [PostController::class, 'like'])->name('posts.like')->middleware('auth');
 });
 
 

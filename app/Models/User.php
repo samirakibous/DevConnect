@@ -63,7 +63,7 @@ class User extends Authenticatable
 
     public function certificate()
     {
-        return $this->hasMany(Certificate::class);
+        return $this->hasMany(certification::class);
     }
 
     public function competences()
@@ -75,7 +75,7 @@ class User extends Authenticatable
 
     public function programmingLanguages()
     {
-        return $this->belongsToMany(ProgrammingLanguage::class, 'user_programming_languages');
+        return $this->belongsToMany(programming_langage::class, 'user_programming_languages');
     }
 
     public function connectedUsers()

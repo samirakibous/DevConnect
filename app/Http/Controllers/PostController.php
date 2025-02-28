@@ -99,4 +99,24 @@ class PostController extends Controller
 
         return redirect()->route('posts.index', $post->id)->with('success', 'Post mis à jour avec succès.');
     }
+
+    public function like($id)
+{
+    $post = Post::findOrFail($id);
+    $user = auth()->user();
+
+    if ($post->likes()->where('user_id', $user->id)->exists()) {
+        $post->likes()->detach($user->id);
+        $liked = false;
+    } else {
+        $post->likes()->attach($user->id);
+        $liked = true;
+    }
+
+    return response()->json([
+        'liked' => $liked,
+        'likes_count' => $post->likes()->count()
+    ]);
+}
+
 }
