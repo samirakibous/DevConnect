@@ -27,8 +27,9 @@ class Post extends Model
         return $this->belongsToMany(Hashtag::class, 'post_hashtags');
     }
 
-    public function likedBy()
+    public function likes()
     {
-        return $this->belongsToMany(User::class);
+        return $this->hasMany(Like::class);
     }
+    
 }

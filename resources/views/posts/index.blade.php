@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>DevConnect - Social Network for Developers</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -565,7 +567,7 @@
                                 </div>
                                 <!-- Edit/Delete for post owner -->
                                 <div class="flex space-x-3">
-                                    <a href="{{ route('posts.edit',$post->id) }}" id="afficherEditForm"
+                                    <a href="{{ route('posts.edit', $post->id) }}" id="afficherEditForm"
                                         class="text-gray-500 hover:text-gray-700 flex items-center">
                                         <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -618,13 +620,15 @@
 
                             <!-- Engagement Metrics -->
                             <div class="flex items-center space-x-6 mt-8 pt-6 border-t">
-                                <button class="text-gray-500 hover:text-blue-500 flex items-center">
-                                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
+                                <button id="like-button-{{ $post->id }}" data-post-id="{{ $post->id }}"
+                                    class="flex items-center {{ $post->likes(auth()->user()) ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500' }}"
+                                    onclick='likePost({{ $post->id }})'>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                            d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
                                     </svg>
-                                    <span>42 Likes</span>
+                                    <span class="ml-2">{{ $post->likes->count() }}
+                                        Like{{ $post->likes->count() != 1 ? 's' : '' }}</span>
                                 </button>
                                 <button class="text-gray-500 hover:text-blue-500 flex items-center">
                                     <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor"
@@ -651,7 +655,7 @@
                             <h3 class="text-xl font-bold mb-6">Comments ({{ $post->comments->count() }})</h3>
                             <div class="space-y-6">
                                 <!-- Comment Input -->
-                                <form action="{{route('comment.store', $post)}}" method="POST">
+                                <form action="{{ route('comment.store', $post) }}" method="POST">
                                     @csrf
                                     <div class="flex items-start space-x-4">
                                         <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
@@ -776,7 +780,7 @@
                     </div>
                 </div>
 
-                <script>
+                <script defer>
                     ///////////////////Script for image preview//////////////////////////
                     document.addEventListener('DOMContentLoaded', function() {
                         const imageUpload = document.getElementById('image-upload');
@@ -819,6 +823,36 @@
                     // afficherEditForm.addEventListener('click',function(){
                     //     editPostForm.classList.remove('hidden'); 
                     // })
+
+
+                    function likePost(postId) {
+
+    console.log("Tentative de like pour le post ID:", postId);
+                        fetch(`/posts/${postId}/like`, { // Ajout des guillemets autour de l'URL
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                const likeButton = document.getElementById(`like-button-${postId}`); // Correction des backticks
+                                const likeCount = likeButton.querySelector('span');
+
+                                likeCount.textContent = `${data.count} ${data.count !== 1 ? 'Likes' : 'Like'}`;
+
+                                if (data.liked) {
+                                    likeButton.classList.add('text-blue-500');
+                                    likeButton.classList.remove('text-gray-400');
+                                } else {
+                                    likeButton.classList.add('text-gray-400');
+                                    likeButton.classList.remove('text-blue-500');
+                                }
+                            })
+                            .catch(error => console.error('Erreur:', error));
+                    }
                 </script>
 
 </body>

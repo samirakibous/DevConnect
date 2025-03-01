@@ -12,6 +12,8 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use phpDocumentor\Reflection\DocBlock\Tag;
 use App\Http\Controllers\Storage;
+use Illuminate\Support\Facades\Auth;
+
 
 class PostController extends Controller
 {
@@ -100,23 +102,22 @@ class PostController extends Controller
         return redirect()->route('posts.index', $post->id)->with('success', 'Post mis à jour avec succès.');
     }
 
-    public function like($id)
-{
-    $post = Post::findOrFail($id);
-    $user = auth()->user();
+    public function toggleLike(Post $post)
+    {
+        $like = $post->likes()->where('user_id', Auth::id())->first();
+        if ($like) {
+            $like->delete();
+            $liked = false;
+        } else {
+            $post->likes()->create([
+                'user_id' => Auth::id(),
+            ]);
+            $liked = true;
+        }
 
-    if ($post->likes()->where('user_id', $user->id)->exists()) {
-        $post->likes()->detach($user->id);
-        $liked = false;
-    } else {
-        $post->likes()->attach($user->id);
-        $liked = true;
+        $count = $post->likes()->count();
+        return response()->json(['liked' => $liked, 'count' => $count]);
     }
 
-    return response()->json([
-        'liked' => $liked,
-        'likes_count' => $post->likes()->count()
-    ]);
-}
 
 }
