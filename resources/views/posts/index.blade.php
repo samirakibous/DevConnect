@@ -827,8 +827,8 @@
 
                     function likePost(postId) {
 
-    console.log("Tentative de like pour le post ID:", postId);
-                        fetch(`/posts/${postId}/like`, { // Ajout des guillemets autour de l'URL
+                        console.log("Tentative de like pour le post ID:", postId);
+                        fetch(`/posts/${postId}/like`, { 
                                 method: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

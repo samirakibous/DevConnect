@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Like;
 use Illuminate\Http\Request;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
@@ -102,22 +103,61 @@ class PostController extends Controller
         return redirect()->route('posts.index', $post->id)->with('success', 'Post mis à jour avec succès.');
     }
 
-    public function toggleLike(Post $post)
+    // public function toggleLike(Post $post)
+    // {
+    //     $like = $post->likes()->where('user_id', Auth::id())->first();
+    //     if ($like) {
+    //         $like->delete();
+    //         $liked = false;
+    //     } else {
+    //         $post->likes()->create([
+    //             'user_id' => Auth::id(),
+    //         ]);
+    //         $liked = true;
+    //     }
+
+    //     $count = $post->likes()->count();
+    //     return response()->json(['liked' => $liked, 'count' => $count]);
+    // }
+
+
+    public function like($postId)
     {
-        $like = $post->likes()->where('user_id', Auth::id())->first();
-        if ($like) {
-            $like->delete();
-            $liked = false;
-        } else {
-            $post->likes()->create([
-                'user_id' => Auth::id(),
+        try {
+            // Récupérer l'utilisateur connecté
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['message' => 'Utilisateur non authentifié'], 401);
+            }
+
+            // Vérifier si le post existe
+            $post = Post::find($postId);
+            if (!$post) {
+                return response()->json(['message' => 'Post introuvable'], 404);
+            }
+
+            // Vérifier si l'utilisateur a déjà liké ce post
+            $existingLike = Like::where('post_id', $post->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if ($existingLike) {
+                // Supprimer le like (toggle)
+                $existingLike->delete();
+                $count = $post->likes()->count();
+                return response()->json(['message' => 'Like supprimé', 'liked' => false,'count' => $count]);
+            }
+
+            // Ajouter un nouveau like
+            Like::create([
+                'post_id' => $post->id,
+                'user_id' => $user->id,
             ]);
-            $liked = true;
+            $count = $post->likes()->count();
+            return response()->json(['message' => 'Post liké avec succès', 'liked' => true,'count' => $count]);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erreur serveur', 'error' => $e->getMessage()], 500);
         }
-
-        $count = $post->likes()->count();
-        return response()->json(['liked' => $liked, 'count' => $count]);
     }
-
-
 }
