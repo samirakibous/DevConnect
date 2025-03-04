@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\CompetenceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/comment/post/{post}', [CommentController::class, 'store'])->name('comment.store');
     // Route pour liker un post
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
+    // Route pour profile
+    Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.show')->middleware('auth');
+    //Route pour modifications
+        Route::get('/modifier-profil', [ProfileController::class, 'modifier'])->name('profile.modifier');
+        Route::put('/modifier-profil', [ProfileController::class, 'updateModifier'])->name('profile.updateModifier');
+
+        Route::post('/user/competences', [CompetenceController::class, 'store']);
+
+    
+
 });
 
 // Route::middleware('api')->group(function () {

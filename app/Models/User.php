@@ -68,8 +68,9 @@ class User extends Authenticatable
 
     public function competences()
     {
-        return $this->belongsToMany(competence::class, 'user_skills');
+        return $this->belongsToMany(Competence::class, 'competence_user')->withTimestamps();
     }
+    
 
 
 
