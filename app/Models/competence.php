@@ -9,10 +9,12 @@ class Competence extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom'];
+    protected $fillable = ['name'];
 
-    public function users()
-    {
-        return $this->belongsToMany(User::class, 'competence_user')->withTimestamps();
-    }
+    // Dans le modèle Competence
+public function users()
+{
+    return $this->belongsToMany(User::class, 'competence_user')->withTimestamps();
+}
+
 }

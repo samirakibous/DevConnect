@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('bio')->nullable();
             $table->string('github_link')->nullable(); 
             $table->text('description')->nullable();
+            $table->string('certification')->nullable(); 
             $table->rememberToken();
             $table->timestamps();
         });

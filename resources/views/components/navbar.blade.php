@@ -6,7 +6,7 @@
         <div class="flex justify-between items-center h-16">
             <div class="flex items-center space-x-4">
                 <div class="text-2xl font-bold text-blue-400">&lt;DevConnect/&gt;</div>
-                <div class="relative">
+                {{-- <div class="relative">
                     <input type="text" placeholder="Search developers, posts, or #tags"
                         class="bg-gray-800 pl-10 pr-4 py-2 rounded-lg w-96 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-gray-700 transition-all duration-200">
                     <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor"
@@ -14,11 +14,33 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
+                </div> --}}
+
+                <div class="container mx-auto mt-5 px-4">
+                    <div class="flex flex-row gap-6 items-center">
+                        <!-- Barre de recherche -->
+                        <div class="relative">
+                            <input type="text" id="search_text"
+                                class="bg-gray-800 pl-10 pr-4 py-2 rounded-lg w-96 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-gray-700 transition-all duration-200"
+                                placeholder="Rechercher un post ou un utilisateur...(tags)">
+                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <div id="result"
+                                class="absolute w-full mt-2 bg-black border border-gray-200 rounded-lg shadow-lg z-10 hidden">
+                                <!-- Résultats de la recherche -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+
             </div>
 
             <div class="flex items-center space-x-6">
-                <a href="#" class="flex items-center space-x-1 hover:text-blue-400">
+                <a href="{{ route('posts.index') }}" class="flex items-center space-x-1 hover:text-blue-400">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -39,10 +61,101 @@
                     <span class="bg-red-500 rounded-full w-2 h-2"></span>
                 </a>
                 <div class="h-8 w-8 rounded-full overflow-hidden">
-                    <img src="{{ Storage::url(Auth::user()->profile_picture ?? 'images/placeholder.jpg') }}"
-                        alt="Profile" class="w-full h-full object-cover" />
+                    <a href="{{ route('profile.show', ['username' => Auth::user()->name]) }}">
+                        <img src="{{ Storage::url(Auth::user()->profile_picture ?? 'images/placeholder.jpg') }}"
+                            alt="Profile" class="w-full h-full object-cover" /></a>
                 </div>
             </div>
         </div>
     </div>
 </nav>
+
+<script>
+
+// Attacher un événement keyup sur le champ de recherche pour détecter quand l'utilisateur appuie sur Entrée
+$('#search_text').on('keyup', function(event) {
+    if (event.key === 'Enter') {
+        let query = $(this).val().trim()
+
+        if (query.length > 0) {
+            // Rediriger l'utilisateur vers la page posts.show avec la recherche incluse dans l'URL
+            window.location.href = `/posts/show?query=${encodeURIComponent(query)}`;
+        } else {
+            console.log('Veuillez entrer un terme de recherche.');
+        }
+    }
+});
+
+
+    function search_data(search_value) {
+        let postsUrl = '/searchPosts?query=' + encodeURIComponent(search_value);
+        let usersUrl = '/searchUsers?query=' + encodeURIComponent(search_value);
+
+        // Recherche des posts
+        $.ajax({
+            url: postsUrl,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+    let resultDiv = $("#result");
+    resultDiv.empty(); // Vide la section avant de rajouter les résultats
+
+    console.log(response);  // Ajoutez ceci pour vérifier le contenu
+
+    if (response.success) {
+        response.posts.forEach(function(post) {
+            let userProfilePicture = post.user && post.user.profile_picture ? post.user.profile_picture : '/images/placeholder.jpg';
+
+            let postHTML = `
+                <div class="post-item p-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-4">
+                    <img src="${userProfilePicture}" alt="Profile Picture" class="w-10 h-10 rounded-full">
+                    <a href="/posts/${post.id}" class="text-blue-500 hover:text-blue-700">
+                        <h3 class="font-semibold">${post.title}</h3>
+                    </a>
+                </div>
+            `;
+            resultDiv.append(postHTML);
+        });
+    }
+
+    resultDiv.removeClass('hidden'); // Affiche les résultats
+},
+
+            error: function(error) {
+                console.error("Erreur lors de la recherche des posts :", error);
+            }
+        });
+
+        // Recherche des utilisateurs
+        $.ajax({
+            url: usersUrl,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                console.log(response)
+                let resultDiv = $("#result");
+                resultDiv.empty(); // Vide la section avant de rajouter les résultats
+
+                if (response.success) {
+                    response.users.forEach(function(user) {
+                        let userHTML = `
+                            <div class="user-item p-2 hover:bg-gray-100 cursor-pointer">${user.name} (${user.email})</div>
+                        `;
+                        resultDiv.append(userHTML);
+                    });
+                }
+
+                resultDiv.removeClass('hidden'); // Affiche les résultats
+            },
+            error: function(error) {
+                console.error("Erreur lors de la recherche des utilisateurs :", error);
+            }
+        });
+    }
+
+    // Écouter la saisie dans la barre de recherche
+    $('#search_text').on('input', function() {
+        let searchValue = $(this).val();
+        search_data(searchValue); // Appelle la fonction de recherche
+    });
+</script>

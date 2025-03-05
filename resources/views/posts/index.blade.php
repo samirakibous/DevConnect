@@ -8,6 +8,10 @@
 
     <title>DevConnect - Social Network for Developers</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 </head>
 
 <body class="bg-gray-50">
@@ -32,7 +36,8 @@
                             <a href="{{ route('profile.show', ['username' => Auth::user()->name]) }}">
                                 <h2 class="text-xl font-bold hover:text-blue-500">{{ Auth::user()->name }}</h2>
                             </a>
-                            <a href="{{ Auth::user()->github_link}}" target="_blank" class="text-gray-600 hover:text-black">
+                            <a href="{{ Auth::user()->github_link }}" target="_blank"
+                                class="text-gray-600 hover:text-black">
                                 <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                                     <path
                                         d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
@@ -40,16 +45,18 @@
                             </a>
                         </div>
 
-                        <p class="text-gray-600 text-sm mt-1">{{ Auth::user()->description}}</p>
-                        <p class="text-gray-500 text-sm mt-2">{{ Auth::user()->bio}}</p>
+                        <p class="text-gray-600 text-sm mt-1">{{ Auth::user()->description }}</p>
+                        <p class="text-gray-500 text-sm mt-2">{{ Auth::user()->bio }}</p>
+
 
                         <div class="mt-4 flex flex-wrap gap-2">
-                            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">JavaScript</span>
-                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Node.js</span>
-                            <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">React</span>
-                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Python</span>
-                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Docker</span>
+                            @foreach (Auth::user()->competences as $competence)
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                    {{ $competence->name }}
+                                </span>
+                            @endforeach
                         </div>
+
 
                         <div class="mt-4 pt-4 border-t">
                             <div class="flex justify-between text-sm">
@@ -82,6 +89,42 @@
                         </a>
                     </div>
                 </div>
+
+                <!-- Suggested Connections -->
+                <div class="bg-white rounded-xl shadow-sm p-4">
+                    <h3 class="font-semibold mb-4">Suggested Connections</h3>
+                    <div class="space-y-4">
+                        <div class=" items-center justify-between">
+                            @foreach ($users as $user)
+                                <div class="flex items-center space-x-3" id="user-{{ $user->id }}">
+                                    <img src="{{ Storage::url($user->profile_picture ?? 'images/placeholder.jpg') }}"
+                                        alt="User" class="w-10 h-10 rounded-full" />
+                                    <div>
+                                        <a href="" class="text-blue-500 hover:text-blue-700">
+                                        </a>
+                                        <h4 class="font-medium">{{ $user->name }}</h4>
+
+                                    </div>
+                                    @if ($user->connectionStatus === 'accepter')
+                                        <a href="" class="text-blue-500 hover:text-blue-600">Message</a>
+                                    @elseif ($user->connectionStatus === 'en attente')
+                                        <span class="text-blue-500 hover:text-blue-600">en attente</span>
+                                    @else
+                                        <button onclick="connect('{{ $user->id }}')"
+                                            class="text-blue-500 hover:text-blue-600 connect-btn">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 4v16m8-8H4" />
+                                            </svg>
+                                        </button>
+                                    @endif
+
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Main Feed -->
@@ -90,8 +133,7 @@
                 <div class="bg-white rounded-xl shadow-sm p-4">
                     <div class="flex items-center space-x-4">
                         <img src="{{ Storage::url(Auth::user()->profile_picture ?? 'images/placeholder.jpg') }}"
-                            alt="user"
-                            class="w-12 h-12 rounded-full" />
+                            alt="user" class="w-12 h-12 rounded-full" />
                         <button
                             class="bg-gray-100 hover:bg-gray-200 text-gray-500 text-left rounded-lg px-4 py-3 flex-grow transition-colors duration-200"
                             id="AddPostButton">
@@ -224,54 +266,17 @@
                         </div>
 
                         <!-- Description/Content -->
-                        <div class="mb-6">
-                            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Post
-                                Content</label>
-                            <div class="border border-gray-300 rounded-lg p-2 bg-white">
-                                <!-- Basic Text Formatting Toolbar -->
-                                <div class="flex items-center space-x-3 border-b border-gray-200 pb-2 mb-2">
-                                    <button type="button" class="p-1 rounded hover:bg-gray-100">
-                                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M6 12h12M6 18h12M6 6h12" />
-                                        </svg>
-                                    </button>
-                                    <button type="button" class="p-1 rounded hover:bg-gray-100">
-                                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 6h16M4 12h16m-7 6h7" />
-                                        </svg>
-                                    </button>
-                                    <button type="button" class="p-1 rounded hover:bg-gray-100 font-bold">B</button>
-                                    <button type="button" class="p-1 rounded hover:bg-gray-100 italic">I</button>
-                                    <button type="button" class="p-1 rounded hover:bg-gray-100 underline">U</button>
-                                    <button type="button" class="p-1 rounded hover:bg-gray-100">
-                                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                        </svg>
-                                    </button>
-                                    <button type="button" class="p-1 rounded hover:bg-gray-100">
-                                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <textarea id="description" name="description" rows="12"
-                                    class="w-full px-3 py-2 border-none focus:outline-none focus:ring-0"
-                                    placeholder="Write your post content here..."></textarea>
-                                @error('description')
-                                    <div>
-                                        <p class="mt-1 text-sm text-gray-500 text-red-700">{{ $message }}</p>
-                                    </div>
-                                @enderror
+                        <!-- Quill Editor for Content -->
+                        <div>
+                            <x-input-label for="description" :value="__('description')" />
+                            <div id="editor" class="mt-1 block w-full border border-gray-300 p-3 rounded-md">
+                                {!! old('description') !!} <!-- Populate with old description if available -->
                             </div>
+                            <!-- Replace the hidden input with a textarea -->
+                            <textarea name="description" id="description-input" class="hidden">{{ old('description') }}</textarea>
+                            <x-input-error class="mt-2" :messages="$errors->get('description')" />
                         </div>
+
 
                         <!-- Post Settings -->
                         <div class="mb-6 border border-gray-200 rounded-lg p-4">
@@ -304,7 +309,7 @@
                                 class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                                 Save as Draft
                             </button>
-                            <button type="submit"
+                            <button id="create-button" type="submit"
                                 class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                                 Publish Post
                             </button>
@@ -516,9 +521,8 @@
                             <div class="flex items-center justify-between mb-6">
                                 <div class="flex items-center">
                                     <div class="w-12 h-12 bg-gray-300 rounded-full">
-                                        <img src="{{ Storage::url(Auth::user()->profile_picture ?? 'images/placeholder.jpg') }}"
-                                        alt="user"
-                                        class="w-12 h-12 rounded-full" />  
+                                        <img src="{{ Storage::url($post->user->profile_picture ?? 'images/placeholder.jpg') }}"
+                                            alt="user" class="w-12 h-12 rounded-full" />
                                     </div>
                                     <div class="ml-4">
                                         <h3 class="font-semibold">{{ $post->user->name }}</h3>
@@ -577,8 +581,10 @@
                             </div>
 
                             <!-- Post Content -->
-                            <div class="prose max-w-none">
-                                <p class="mb-4">{{ $post->description }}</p>
+                            <div class="prose max-w-none ql-snow">
+                                <div class="ql-editor" style="padding: 0 !important;">
+                                    <p class="mb-4">{!! $post->description !!}</p>
+                                </div>
 
                             </div>
 
@@ -614,218 +620,327 @@
                             </div>
                         </div>
 
-                        <!-- Comments Section -->
-                        <div class="border-t border-gray-200 p-6">
-                            <h3 class="text-xl font-bold mb-6">Comments ({{ $post->comments->count() }})</h3>
-                            <div class="space-y-6">
-                                <!-- Comment Input -->
-                                <form action="{{ route('comment.store', $post) }}" method="POST">
-                                    @csrf
-                                    <div class="flex items-start space-x-4">
-                                        <div class="w-10 h-10 bg-gray-300 rounded-full">
-                                            <img src="{{ Storage::url(Auth::user()->profile_picture ?? 'images/placeholder.jpg') }}"
-                                            alt="user"
-                                            class="w-12 h-12 rounded-full" />
-                                        </div>
+                        <!-- Comment Input -->
+                        <form id="commentForm" action="{{ route('comment.store', $post) }}" method="POST"
+                            data-post-id="{{ $post->id }}">
+                            @csrf
+                            <div class="flex items-start space-x-4 px-8">
+                                <div class="w-10 h-10 bg-gray-300 rounded-full">
+                                    <img src="{{ Storage::url(Auth::user()->profile_picture ?? 'images/placeholder.jpg') }}"
+                                        alt="user" class="w-12 h-12 rounded-full" />
+                                </div>
 
-                                        <div class="flex-1">
-                                            <textarea class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Add to the discussion..." name="content"></textarea>
-                                            <button
-                                                class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Comment</button>
-                                        </div>
+                                <div class="flex-1">
+                                    <textarea id="commentContent"
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Add to the discussion..." name="content"></textarea>
+                                    <button type="submit"
+                                        class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                                        Comment
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Existing Comments -->
+                        <div id="commentList" class="space-y-6 mt-4 px-8">
+                            @foreach ($post->comments->sortByDesc('created_at') as $comment)
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-10 h-10 bg-gray-300 rounded-full">
+                                        <img src="{{ Storage::url($comment->user->profile_picture ?? 'images/placeholder.jpg') }}"
+                                            alt="user" class="w-12 h-12 rounded-full" />
                                     </div>
-
-                                </form>
-
-                                <!-- Existing Comments -->
-                                <div class="space-y-6">
-                                    <!-- Comment 1 -->
-                                    @foreach ($post->comments->sortByDesc('created_at') as $comment)
-                                        <div class="flex items-start space-x-4">
-                                            <div class="w-10 h-10 bg-gray-300 rounded-full">
-                                                <img src="{{ Storage::url(Auth::user()->profile_picture ?? 'images/placeholder.jpg') }}"
-                                                alt="user"
-                                                class="w-12 h-12 rounded-full" />
+                                    <div class="flex-1">
+                                        <div class="bg-gray-50 p-4 rounded-lg">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <h4 class="font-semibold">{{ $comment->user->name }}</h4>
+                                                <span
+                                                    class="text-gray-500 text-sm">{{ $comment->created_at->diffForHumans() }}</span>
                                             </div>
-                                            <div class="flex-1">
-                                                <div class="bg-gray-50 p-4 rounded-lg">
-                                                    <div class="flex items-center justify-between mb-2">
-                                                        <h4 class="font-semibold">{{ $comment->user->name }}</h4>
-                                                        <span
-                                                            class="text-gray-500 text-sm">{{ $comment->created_at->diffForHumans() }}</span>
-                                                    </div>
-                                                    <p class="text-gray-800">{{ $comment->content }}</p>
-                                                    <div class="mt-3 flex items-center space-x-4">
-                                                        <button
-                                                            class="text-gray-500 hover:text-blue-500 text-sm">Reply</button>
-                                                        <button
-                                                            class="text-gray-500 hover:text-blue-500 text-sm">Like</button>
-                                                    </div>
-                                                </div>
+                                            <p class="text-gray-800">{{ $comment->content }}</p>
+                                            <div class="mt-3 flex items-center space-x-4">
+                                                <button
+                                                    class="text-gray-500 hover:text-blue-500 text-sm">Reply</button>
+                                                <button class="text-gray-500 hover:text-blue-500 text-sm">Like</button>
                                             </div>
                                         </div>
-                                    @endforeach
-
-
+                                    </div>
                                 </div>
-                            </div>
+                            @endforeach
                         </div>
-                    </article>
-
-                @empty
-                    <h1>You have no posts</h1>
-                @endforelse
 
 
-                <div class="my-6">
-                    {{ $posts->links() }}
-                </div>
 
 
-                <!-- Right Sidebar -->
-                <div class="space-y-6">
-                    <!-- Job Recommendations -->
-                    <div class="bg-white rounded-xl shadow-sm p-4">
-                        <h3 class="font-semibold mb-4">Job Recommendations</h3>
-                        <div class="space-y-4">
-                            <div class="p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                                <div class="flex items-start space-x-3">
-                                    <img src="/api/placeholder/40/40" alt="Company" class="w-10 h-10 rounded" />
-                                    <div>
-                                        <h4 class="font-medium">Senior Full Stack Developer</h4>
-                                        <p class="text-gray-500 text-sm">TechStart Inc.</p>
-                                        <p class="text-gray-500 text-sm">Remote • Full-time</p>
-                                        <div class="mt-2 flex flex-wrap gap-2">
-                                            <span
-                                                class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">React</span>
-                                            <span
-                                                class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Node.js</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+            </div>
+        </div>
+    </div>
+    </article>
 
-                            <div class="p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                                <div class="flex items-start space-x-3">
-                                    <img src="/api/placeholder/40/40" alt="Company" class="w-10 h-10 rounded" />
-                                    <div>
-                                        <h4 class="font-medium">DevOps Engineer</h4>
-                                        <p class="text-gray-500 text-sm">CloudScale Solutions</p>
-                                        <p class="text-gray-500 text-sm">San Francisco • Hybrid</p>
-                                        <div class="mt-2 flex flex-wrap gap-2">
-                                            <span
-                                                class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">AWS</span>
-                                            <span
-                                                class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Docker</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="mt-4 w-full text-blue-500 hover:text-blue-600 text-sm font-medium">
-                            View All Jobs
-                        </button>
-                    </div>
+@empty
+    <h1>You have no posts</h1>
+    @endforelse
 
-                    <!-- Suggested Connections -->
-                    <div class="bg-white rounded-xl shadow-sm p-4">
-                        <h3 class="font-semibold mb-4">Suggested Connections</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://avatar.iran.liara.run/public/boy" alt="User"
-                                        class="w-10 h-10 rounded-full" />
-                                    <div>
-                                        <h4 class="font-medium">Emily Zhang</h4>
-                                        <p class="text-gray-500 text-sm">Frontend Developer</p>
-                                    </div>
-                                </div>
-                                <button class="text-blue-500 hover:text-blue-600">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 4v16m8-8H4" />
-                                    </svg>
-                                </button>
+
+    <div class="my-6">
+        {{ $posts->links() }}
+    </div>
+
+
+    <!-- Right Sidebar -->
+    <div class="space-y-6">
+        <!-- Job Recommendations -->
+        <div class="bg-white rounded-xl shadow-sm p-4">
+            <h3 class="font-semibold mb-4">Job Recommendations</h3>
+            <div class="space-y-4">
+                <div class="p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                    <div class="flex items-start space-x-3">
+                        <img src="" alt="Company" class="w-10 h-10 rounded" />
+                        <div>
+                            <h4 class="font-medium">Senior Full Stack Developer</h4>
+                            <p class="text-gray-500 text-sm">TechStart Inc.</p>
+                            <p class="text-gray-500 text-sm">Remote • Full-time</p>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">React</span>
+                                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Node.js</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <script defer>
-                    ///////////////////Script for image preview//////////////////////////
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const imageUpload = document.getElementById('image-upload');
-                        const imagePreview = document.getElementById('image-preview');
-                        const previewImage = document.getElementById('preview-image');
-                        const removeImage = document.getElementById('remove-image');
+                <div class="p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                    <div class="flex items-start space-x-3">
+                        <img src="" alt="Company" class="w-10 h-10 rounded" />
+                        <div>
+                            <h4 class="font-medium">DevOps Engineer</h4>
+                            <p class="text-gray-500 text-sm">CloudScale Solutions</p>
+                            <p class="text-gray-500 text-sm">San Francisco • Hybrid</p>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">AWS</span>
+                                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Docker</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="mt-4 w-full text-blue-500 hover:text-blue-600 text-sm font-medium">
+                View All Jobs
+            </button>
+        </div>
 
-                        imageUpload.addEventListener('change', function(e) {
-                            if (e.target.files.length > 0) {
-                                const file = e.target.files[0];
-                                if (file.type.match('image.*')) {
-                                    const reader = new FileReader();
+        <!-- Suggested Connections -->
+        <div class="bg-white rounded-xl shadow-sm p-4">
+            @if ($user->connectionStatus === 'accepter')
+                <a href="" class="text-blue-500 hover:text-blue-600">Message</a>
+            @elseif ($user->connectionStatus === 'en attente')
+                <span class="text-blue-500 hover:text-blue-600">en attente</span>
+            @else
+                <button onclick="connect('{{ $user->id }}')"
+                    class="text-blue-500 hover:text-blue-600 connect-btn">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                </button>
+            @endif
+        </div>
+    </div>
 
-                                    reader.onload = function(e) {
-                                        previewImage.src = e.target.result;
-                                        imagePreview.classList.remove('hidden');
-                                    }
+    <script defer>
+        ///////////////////Script for image preview//////////////////////////
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageUpload = document.getElementById('image-upload');
+            const imagePreview = document.getElementById('image-preview');
+            const previewImage = document.getElementById('preview-image');
+            const removeImage = document.getElementById('remove-image');
 
-                                    reader.readAsDataURL(file);
-                                }
-                            }
-                        });
+            imageUpload.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    if (file.type.match('image.*')) {
+                        const reader = new FileReader();
 
-                        removeImage.addEventListener('click', function() {
-                            imageUpload.value = '';
-                            imagePreview.classList.add('hidden');
-                            previewImage.src = '#';
-                        });
-                    });
+                        reader.onload = function(e) {
+                            previewImage.src = e.target.result;
+                            imagePreview.classList.remove('hidden');
+                        }
 
-                    ///////////////script d'affichage du forme d'ajout///////////////////////
-                    const AddPostButton = document.getElementById('AddPostButton');
-                    const AddPostForm = document.getElementById('AddPostForm');
-                    AddPostButton.addEventListener('click', function() {
-                        AddPostForm.classList.remove("hidden");
-                    })
-                    ///////////////script d'affichage du forme d'editation///////////////////////
-                    // const editPostForm=document.getElementById('editPostForm');
-                    // const afficherEditForm=document.getElementById('afficherEditForm');
-                    // afficherEditForm.addEventListener('click',function(){
-                    //     editPostForm.classList.remove('hidden'); 
-                    // })
-
-
-                    function likePost(postId) {
-
-                        console.log("Tentative de like pour le post ID:", postId);
-                        fetch(`/posts/${postId}/like`, {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                    'Accept': 'application/json',
-                                    'Content-Type': 'application/json'
-                                },
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                const likeButton = document.getElementById(`like-button-${postId}`); // Correction des backticks
-                                const likeCount = likeButton.querySelector('span');
-
-                                likeCount.textContent = `${data.count} ${data.count !== 1 ? 'Likes' : 'Like'}`;
-
-                                if (data.liked) {
-                                    likeButton.classList.add('text-blue-500');
-                                    likeButton.classList.remove('text-gray-400');
-                                } else {
-                                    likeButton.classList.add('text-gray-400');
-                                    likeButton.classList.remove('text-blue-500');
-                                }
-                            })
-                            .catch(error => console.error('Erreur:', error));
+                        reader.readAsDataURL(file);
                     }
-                </script>
+                }
+            });
+
+            removeImage.addEventListener('click', function() {
+                imageUpload.value = '';
+                imagePreview.classList.add('hidden');
+                previewImage.src = '#';
+            });
+        });
+
+        ///////////////script d'affichage du forme d'ajout///////////////////////
+        const AddPostButton = document.getElementById('AddPostButton');
+        const AddPostForm = document.getElementById('AddPostForm');
+        AddPostButton.addEventListener('click', function() {
+            AddPostForm.classList.remove("hidden");
+        })
+
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{
+                        'header': '1'
+                    }, {
+                        'header': '2'
+                    }],
+                    [{
+                        'list': 'ordered'
+                    }, {
+                        'list': 'bullet'
+                    }],
+                    ['bold', 'italic', 'underline'],
+                    [{
+                        'align': []
+                    }],
+                    ['link'],
+                    ['blockquote', 'code-block'],
+                ],
+            }
+        });
+
+        document.querySelector('#create-button').addEventListener('click', function(e) {
+            // Get the HTML content directly from Quill
+            const htmlContent = quill.root.innerHTML;
+            const textArea = document.getElementById('description-input');
+            textArea.value = htmlContent; // Ensure this is set to textarea's value
+        });
+        ///////////////script d'affichage du forme d'editation///////////////////////
+        // const editPostForm=document.getElementById('editPostForm');
+        // const afficherEditForm=document.getElementById('afficherEditForm');
+        // afficherEditForm.addEventListener('click',function(){
+        //     editPostForm.classList.remove('hidden'); 
+        // })
+
+
+        function likePost(postId) {
+
+            console.log("Tentative de like pour le post ID:", postId);
+            fetch(`/posts/${postId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const likeButton = document.getElementById(`like-button-${postId}`); // Correction des backticks
+                    const likeCount = likeButton.querySelector('span');
+
+                    likeCount.textContent = `${data.count} ${data.count !== 1 ? 'Likes' : 'Like'}`;
+
+                    if (data.liked) {
+                        likeButton.classList.add('text-blue-500');
+                        likeButton.classList.remove('text-gray-400');
+                    } else {
+                        likeButton.classList.add('text-gray-400');
+                        likeButton.classList.remove('text-blue-500');
+                    }
+                })
+                .catch(error => console.error('Erreur:', error));
+        }
+
+
+        async function connect(userId) {
+            try {
+                // Fix the dynamic URL using backticks
+                const response = await fetch(`/users/${userId}/connection`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // console.log('success');
+
+                    // Fix the dynamic ID using backticks
+                    const userElement = document.getElementById(`user-${userId}`);
+                    // console.log(userElement);
+
+                    if (userElement) {
+                        // Fix the dynamic query for connect-btn
+                        const button = userElement.querySelector('.connect-btn');
+                        // console.log(button);
+
+                        if (button) {
+                            button.remove();
+                        }
+
+                        const pendingText = document.createElement('span');
+                        pendingText.className = "text-blue-500 hover:text-blue-600";
+                        pendingText.textContent = "en attente";
+                        userElement.appendChild(pendingText);
+                    }
+                }
+            } catch (error) {
+                console.error('Error Connecting:', error);
+            }
+        }
+
+        $(document).ready(function() {
+            $('#commentForm').submit(function(event) {
+                event.preventDefault(); // Empêche le rechargement de la page
+
+                var form = $(this);
+                var formData = form.serialize(); // Sérialise les données du formulaire
+
+                $.ajax({
+                    url: form.attr('action'),
+                    method: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            // Créer un nouvel élément de commentaire
+                            var newComment = `
+                        <div class="flex items-start space-x-4" id="comment-${response.comment.id}">
+                            <div class="w-10 h-10 bg-gray-300 rounded-full">
+                                <img src="${response.comment.user.profile_picture ?? 'images/placeholder.jpg'}"
+                                    alt="user" class="w-12 h-12 rounded-full" />
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold">${response.comment.user.name}</h4>
+                                        <span class="text-gray-500 text-sm">${response.created_at}</span>
+                                    </div>
+                                    <p class="text-gray-800">${response.comment.content}</p>
+                                    <div class="mt-3 flex items-center space-x-4">
+                                        <button class="text-gray-500 hover:text-blue-500 text-sm">Reply</button>
+                                        <button class="text-gray-500 hover:text-blue-500 text-sm">Like</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                            // Ajouter le nouveau commentaire au début de la liste
+                            $('#commentList').prepend(newComment);
+                            $('#commentContent').val(''); // Effacer le champ de saisie
+                        } else {
+                            alert('Error adding comment!');
+                        }
+                    },
+                    error: function() {
+                        alert('Something went wrong!');
+                    }
+                });
+            });
+        });
+    </script>
 
 </body>
 

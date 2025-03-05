@@ -4,39 +4,32 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Competence;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 
 class CompetenceController extends Controller
 {
     public function store(Request $request)
     {
-        $user = Auth::user();
-    
-        // Valider la requête
-        $request->validate([
-            'competences' => 'required|array',
-            'competences.*' => 'string|max:255'
+
+
+        // Vérifier que le champ est bien un tableau
+        $validated = $request->validate([
+            'competences' => 'required',
         ]);
-    
-        // Vérifier les erreurs de validation
-        if ($request->fails()) {
-            dd($request->errors());
+        $competencesArray = explode(',', $request->competences);
+
+        $competencesIds = [];
+        foreach ($competencesArray as $competence) {
+            $competence = Competence::firstOrCreate(['name' => $competence]);
+            $competencesIds[] = $competence->id;
         }
-        
-        // Synchroniser les compétences de l'utilisateur (ajout/suppsion autoassur
-        $competences = [];
-        foreach ($request->competences as $comp) {
-            $competences[] = Competence::firstOrCreate(['nom' => $comp])->id;
-        }
-    
-        dd($competences); // Vérifie que les compétences sont créées
-        
-        $user->competences()->sync($competences); 
-        
-        return response()->json(['message' => 'Compétences mises à jour avec succès !']);
+        $user = auth()->user();
+        $user->competences()->sync($competencesIds);
+
+        // Synchroniser les compétences avec l'utilisateur
+        $user->competences;
+
+        return back()->with('success', 'Compétences mises à jour avec succès.');
     }
-    
-
-
 }

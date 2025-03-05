@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CompetenceController;
+use App\Http\Controllers\ConnectionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,12 +41,23 @@ Route::middleware('auth')->group(function () {
     // Route pour profile
     Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.show')->middleware('auth');
     //Route pour modifications
-        Route::get('/modifier-profil', [ProfileController::class, 'modifier'])->name('profile.modifier');
-        Route::put('/modifier-profil', [ProfileController::class, 'updateModifier'])->name('profile.updateModifier');
+    Route::get('/modifier-profil', [ProfileController::class, 'modifier'])->name('profile.modifier');
+    Route::put('/modifier-profil', [ProfileController::class, 'updateModifier'])->name('profile.updateModifier');
 
-        Route::post('/user/competences', [CompetenceController::class, 'store']);
+    Route::post('/competences', [CompetenceController::class, 'store'])->name('competences.store');
 
-    
+    //Route pour connections 
+    Route::post('/users/{user}/connection', [ConnectionController::class, 'connect'])->name('connection');
+
+    //Route pour search 
+    Route::get('/searchPosts', [PostController::class, 'searchPosts']);
+    Route::get('/searchUsers', [PostController::class, 'searchUsers']);
+    Route::get('/posts/{id}', [PostController::class, 'show'])->name('posts.show');
+ 
+
+// Route pour afficher un utilisateur spécifique
+Route::get('/users/{id}', [PostController::class, 'showe'])->name('users.showe');
+
 
 });
 

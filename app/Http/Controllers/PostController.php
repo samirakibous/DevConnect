@@ -22,16 +22,30 @@ class PostController extends Controller
 
     public function index()
     {
-        // $post = Post::with('hashtags')->get();
-        // dd($post);
+        $users = User::where('id', '!=', auth()->id())->get();
+
         $posts = Post::with('user', 'comments', 'hashtags')->latest()->paginate(2);
+
         $hashtags = hashtag::all();
 
-        return view('posts/index', ["posts" => $posts, "hashtags" => $hashtags]);
+        $currentUser = auth()->user();
+        foreach ($users as $user) {
+            $user->competences = $user->competences;
+        }
+
+        return view('posts.index', [
+            'posts' => $posts,
+            'hashtags' => $hashtags,
+            'users' => $users,
+            'user' => $currentUser // Passer l'utilisateur authentifié à la vue
+        ]);
     }
+
 
     public function store(Request $request)
     {
+
+
 
         $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -145,7 +159,7 @@ class PostController extends Controller
                 // Supprimer le like (toggle)
                 $existingLike->delete();
                 $count = $post->likes()->count();
-                return response()->json(['message' => 'Like supprimé', 'liked' => false,'count' => $count]);
+                return response()->json(['message' => 'Like supprimé', 'liked' => false, 'count' => $count]);
             }
 
             // Ajouter un nouveau like
@@ -154,10 +168,57 @@ class PostController extends Controller
                 'user_id' => $user->id,
             ]);
             $count = $post->likes()->count();
-            return response()->json(['message' => 'Post liké avec succès', 'liked' => true,'count' => $count]);
-
+            return response()->json(['message' => 'Post liké avec succès', 'liked' => true, 'count' => $count]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Erreur serveur', 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function searchPosts(Request $request)
+    {
+        $query = $request->input('query');
+        $posts = Post::where('title', 'like', '%' . $query . '%')
+            ->orWhere('description', 'like', '%' . $query . '%')
+            ->get();
+
+        return response()->json(['success' => true, 'posts' => $posts]);
+    }
+
+    // Méthode pour rechercher des utilisateurs
+    public function searchUsers(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|max:255',
+        ]);
+
+        $query = $request->input('query');
+
+        // Effectuer la recherche des utilisateurs
+        $users = User::where('name', 'like', '%' . $query . '%')
+            ->orWhere('email', 'like', '%' . $query . '%')
+            ->get();
+
+        return response()->json(['success' => true, 'users' => $users]);
+    }
+
+
+    // Dans PostController.php
+
+    public function show(Request $request)
+    {
+        $query = $request->query('query');
+
+        // Recherche des utilisateurs
+        $users = User::where('name', 'like', '%' . $query . '%')->get();
+
+        // Recherche des posts
+        $posts = Post::where('title', 'like', '%' . $query . '%')->get();
+
+        return view('posts.show', compact('users', 'posts'));
+    }
+
+
+
+
+
 }

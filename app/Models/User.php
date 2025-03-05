@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'certifications',
+         'profile_picture',
     ];
 
     /**
@@ -50,7 +52,7 @@ class User extends Authenticatable
 
     public function connections()
     {
-        return $this->belongsToMany(User::class, 'connections', 'user_id', 'connection_id');
+        return $this->belongsToMany(User::class, 'connections', 'user_id', 'connected_user_id');
     }
 
 
@@ -66,11 +68,13 @@ class User extends Authenticatable
         return $this->hasMany(certification::class);
     }
 
+    // Dans le modèle User
     public function competences()
     {
         return $this->belongsToMany(Competence::class, 'competence_user')->withTimestamps();
     }
-    
+
+
 
 
 
@@ -83,6 +87,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(User::class, 'connections', 'user_id', 'connected_user_id');
     }
+    
 
     public function messages()
     {

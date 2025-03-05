@@ -63,40 +63,35 @@ class ProfileController extends Controller
 
     public function show($username)
     {
-        // Chercher l'utilisateur par son nom d'utilisateur
         $user = User::where('name', $username)->firstOrFail();
+        $connections = $user->connections;
 
-        // Vérifier si l'utilisateur connecté est celui dont on cherche le profil
         if (Auth::user()->name !== $user->name) {
             abort(403, "Accès interdit");
         }
 
-        // Afficher la vue du profil
-        return view('user.profile', compact('user'));
+        return view('user.profile', compact('user','connections'));
     }
 
     public function modifier()
     {
-        // Tu peux envoyer ici des données supplémentaires, comme les informations actuelles du profil
         return view('profile.modifier');
     }
 
-    // Met à jour les informations du profil
+    
     public function updateModifier(Request $request)
     {
-        $user = auth()->user();  // Récupère l'utilisateur authentifié
+        $user = auth()->user();
 
-        // Valide les données du formulaire, y compris les nouveaux champs
         $request->validate([
-            'profile_picture' => 'nullable|image|max:2048',  // Validation de l'image
+            'profile_picture' => 'nullable|image|max:2048',
             'name' => 'nullable|string|max:255',
-            'bio' => 'nullable|string|max:1000',  // Validation de la bio
-            'github_link' => 'nullable|url|max:255',  // Validation du lien GitHub
-            'description' => 'nullable|string|max:1000',  // Validation de la description
-            'competences' => 'nullable|string|max:255',
+            'bio' => 'nullable|string|max:1000',  
+            'github_link' => 'nullable|url|max:255', 
+            'description' => 'nullable|string|max:1000',
+            'certification' => 'nullable|string|max:1000',
         ]);
 
-        // Si l'image de profil est fournie, on la sauvegarde
         if ($request->hasFile('profile_picture')) {
             // Supprimer l'ancienne image si elle existe
             if ($user->profile_picture) {
@@ -120,11 +115,11 @@ class ProfileController extends Controller
         if ($request->filled('description')) {
             $user->description = $request->description;
         }
-        if ($request->filled('competences')) {
-            $user->competences = $request->competences;
+        if ($request->filled('certification')) {
+            $user->certification = $request->certification;
         }
+      
 
-        // Sauvegarde l'utilisateur modifié
         $user->save();
 
         // Redirige vers la page du profil avec un message de succès
