@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 
 </head>
 
@@ -939,6 +940,36 @@
                     }
                 });
             });
+        });
+
+        //////////////////////////////////pusher notif////////////////////////////////////////////////
+
+        @php
+            $userId = auth()->check() ? auth()->user()->id : 0;
+        @endphp
+        console.log("yes is me", {{ $userId }});
+
+        Pusher.logToConsole = true;
+
+        var pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
+            cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
+            encrypted: true
+        });
+
+        var channel = pusher.subscribe('my-channel');
+
+        // Listen for the broadcasted event
+        channel.bind("Illuminate\\Notifications\\Events\\BroadcastNotificationCreated", function(data) {
+            console.log("Notification received:", data);
+            alert(data.content);
+
+
+            // Check if 'comment' exists in the data
+            if (data.content) {
+                alert(data.content);
+            } else {
+                alert('No comment found in the data!');
+            }
         });
     </script>
 
