@@ -6,6 +6,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CompetenceController;
 use App\Http\Controllers\ConnectionController;
+use App\Http\Controllers\ProgrammingLanguageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +44,8 @@ Route::middleware('auth')->group(function () {
     //Route pour modifications
     Route::get('/modifier-profil', [ProfileController::class, 'modifier'])->name('profile.modifier');
     Route::put('/modifier-profil', [ProfileController::class, 'updateModifier'])->name('profile.updateModifier');
+    //Route pour créer un langage de programmation
+    Route::post('/add-programming-language', [ProgrammingLanguageController::class, 'create'])->name('add-programming-language.create');
 
     Route::post('/competences', [CompetenceController::class, 'store'])->name('competences.store');
 
@@ -53,12 +56,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/searchPosts', [PostController::class, 'searchPosts']);
     Route::get('/searchUsers', [PostController::class, 'searchUsers']);
     Route::get('/posts/{id}', [PostController::class, 'show'])->name('posts.show');
- 
-
-// Route pour afficher un utilisateur spécifique
-Route::get('/users/{id}', [PostController::class, 'showe'])->name('users.showe');
 
 
+    // Route pour afficher un utilisateur spécifique
+    Route::get('/users/{id}', [PostController::class, 'showe'])->name('users.showe');
 });
 
 // Route::middleware('api')->group(function () {

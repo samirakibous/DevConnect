@@ -22,7 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'certifications',
-         'profile_picture',
+        'profile_picture',
     ];
 
     /**
@@ -74,20 +74,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Competence::class, 'competence_user')->withTimestamps();
     }
 
-
-
-
-
-    public function programmingLanguages()
-    {
-        return $this->belongsToMany(programming_langage::class, 'user_programming_languages');
-    }
-
     public function connectedUsers()
     {
         return $this->belongsToMany(User::class, 'connections', 'user_id', 'connected_user_id');
     }
-    
+
 
     public function messages()
     {
@@ -99,5 +90,10 @@ class User extends Authenticatable
     public function likedPosts()
     {
         return $this->belongsToMany(Post::class, 'post_likes');
+    }
+
+    public function languages()
+    {
+        return $this->belongsToMany(Language::class, 'languages_user');
     }
 }

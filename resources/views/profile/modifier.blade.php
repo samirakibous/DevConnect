@@ -88,6 +88,19 @@
                     </form>
                 </div>
 
+                <div class="mt-6">
+                    <form action="{{ route('add-programming-language.create') }}" method="POST">
+                        @csrf
+                        <h3 class="text-lg font-semibold">Langages de programmation</h3>
+                        <input type="text" id="langages" name="langages[]" class="border p-2 w-full"
+                            placeholder="Ajoutez une compétence...">
+                        <input type="hidden" name="langages" id="langages_hidden">
+                        <div id="langages-list" class="mt-2 flex flex-wrap gap-2"></div>
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Enregistrer les
+                            compétences</button>
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>
