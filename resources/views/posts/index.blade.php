@@ -1,23 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>DevConnect - Social Network for Developers</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-
-</head>
-
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    @include('components.navbar')
+<x-app-layout>
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto pt-20 px-4">
@@ -62,7 +43,8 @@
                         <div class="mt-4 pt-4 border-t">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-500">Connections</span>
-                                <span class="text-blue-600 font-medium">487</span>
+                                <span
+                                    class="text-blue-600 font-medium">{{ Auth::user()->connections()->count() }}</span>
                             </div>
                             <div class="flex justify-between text-sm mt-2">
                                 <span class="text-gray-500">Posts</span>
@@ -76,56 +58,17 @@
                 <div class="bg-white rounded-xl shadow-sm p-4">
                     <h3 class="font-semibold mb-4">Trending Tags</h3>
                     <div class="space-y-2">
-                        <a href="#" class="flex items-center justify-between hover:bg-gray-50 p-2 rounded">
-                            <span class="text-gray-600">#javascript</span>
-                            <span class="text-gray-400 text-sm">2.4k</span>
-                        </a>
-                        <a href="#" class="flex items-center justify-between hover:bg-gray-50 p-2 rounded">
-                            <span class="text-gray-600">#react</span>
-                            <span class="text-gray-400 text-sm">1.8k</span>
-                        </a>
-                        <a href="#" class="flex items-center justify-between hover:bg-gray-50 p-2 rounded">
-                            <span class="text-gray-600">#webdev</span>
-                            <span class="text-gray-400 text-sm">1.2k</span>
-                        </a>
+
+                        @foreach ($topHashtags as $hashtag)
+                            <a href="#" class="flex items-center justify-between hover:bg-gray-50 p-2 rounded">
+                                <span class="text-gray-600">#{{ $hashtag->name }}</span>
+                                <span class="text-gray-400 text-sm">{{ $hashtag->posts_count }}</span>
+                            </a>
+                        @endforeach
+
                     </div>
                 </div>
 
-                <!-- Suggested Connections -->
-                <div class="bg-white rounded-xl shadow-sm p-4">
-                    <h3 class="font-semibold mb-4">Suggested Connections</h3>
-                    <div class="space-y-4">
-                        <div class=" items-center justify-between">
-                            @foreach ($users as $user)
-                                <div class="flex items-center space-x-3" id="user-{{ $user->id }}">
-                                    <img src="{{ Storage::url($user->profile_picture ?? 'images/placeholder.jpg') }}"
-                                        alt="User" class="w-10 h-10 rounded-full" />
-                                    <div>
-                                        <a href="" class="text-blue-500 hover:text-blue-700">
-                                        </a>
-                                        <h4 class="font-medium">{{ $user->name }}</h4>
-
-                                    </div>
-                                    @if ($user->connectionStatus === 'accepter')
-                                        <a href="" class="text-blue-500 hover:text-blue-600">Message</a>
-                                    @elseif ($user->connectionStatus === 'en attente')
-                                        <span class="text-blue-500 hover:text-blue-600">en attente</span>
-                                    @else
-                                        <button onclick="connect('{{ $user->id }}')"
-                                            class="text-blue-500 hover:text-blue-600 connect-btn">
-                                            <svg class="w-6 h-6" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 4v16m8-8H4" />
-                                            </svg>
-                                        </button>
-                                    @endif
-
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Main Feed -->
@@ -511,11 +454,7 @@
                     <!-- Post Content -->
                     <article class="bg-white rounded-lg shadow-md">
                         <!-- Post Header -->
-
                         <div class="p-6">
-
-
-
                             <h1 class="text-3xl font-bold mb-4"> {{ $post->title }}</h1>
 
                             <!-- Post Metadata -->
@@ -570,7 +509,7 @@
                                     @foreach ($post->hashtags as $hashtag)
                                         <span class="text-sm text-gray-500">#{{ $hashtag->name }}</span>
                                         {{-- <span class="text-sm text-gray-500">#coding</span>
-                        <span class="text-sm text-gray-500">#beginners</span> --}}
+                                        <span class="text-sm text-gray-500">#beginners</span> --}}
                                     @endforeach
                                 </div>
                             </div>
@@ -609,14 +548,14 @@
                                     </svg>
                                     <span>{{ $post->comments->count() }} Comments</span>
                                 </button>
-                                <button class="text-gray-500 hover:text-blue-500 flex items-center">
-                                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                                    </svg>
-                                    <span>Share</span>
-                                </button>
+                                <!-- Bouton pour partager le post -->
+                                {{-- <button onclick="copyLink('{{ route('posts.view', $post->id) }}')"
+                                    class="share-button">
+                                    Partager ce post
+                                </button> --}}
+
+
+
 
                             </div>
                         </div>
@@ -669,82 +608,101 @@
                                 </div>
                             @endforeach
                         </div>
+                    </article>
+                @empty
+                    <h1>You have no posts</h1>
+                @endforelse
 
-
-
-
+                <div class="my-6">
+                    {{ $posts->links() }}
+                </div>
             </div>
-        </div>
-    </div>
-    </article>
 
-@empty
-    <h1>You have no posts</h1>
-    @endforelse
-
-
-    <div class="my-6">
-        {{ $posts->links() }}
-    </div>
-
-
-    <!-- Right Sidebar -->
-    <div class="space-y-6">
-        <!-- Job Recommendations -->
-        <div class="bg-white rounded-xl shadow-sm p-4">
-            <h3 class="font-semibold mb-4">Job Recommendations</h3>
-            <div class="space-y-4">
-                <div class="p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                    <div class="flex items-start space-x-3">
-                        <img src="" alt="Company" class="w-10 h-10 rounded" />
-                        <div>
-                            <h4 class="font-medium">Senior Full Stack Developer</h4>
-                            <p class="text-gray-500 text-sm">TechStart Inc.</p>
-                            <p class="text-gray-500 text-sm">Remote • Full-time</p>
-                            <div class="mt-2 flex flex-wrap gap-2">
-                                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">React</span>
-                                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Node.js</span>
+            <!-- Right Sidebar -->
+            <div class="space-y-6">
+                <!-- Job Recommendations -->
+                <div class="bg-white rounded-xl shadow-sm p-4">
+                    <h3 class="font-semibold mb-4">Job Recommendations</h3>
+                    <div class="space-y-4">
+                        <div class="p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                            <div class="flex items-start space-x-3">
+                                <img src="" alt="Company" class="w-10 h-10 rounded" />
+                                <div>
+                                    <h4 class="font-medium">Senior Full Stack Developer</h4>
+                                    <p class="text-gray-500 text-sm">TechStart Inc.</p>
+                                    <p class="text-gray-500 text-sm">Remote • Full-time</p>
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        <span
+                                            class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">React</span>
+                                        <span
+                                            class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Node.js</span>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+
+                        <div class="p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                            <div class="flex items-start space-x-3">
+                                <img src="" alt="Company" class="w-10 h-10 rounded" />
+                                <div>
+                                    <h4 class="font-medium">DevOps Engineer</h4>
+                                    <p class="text-gray-500 text-sm">CloudScale Solutions</p>
+                                    <p class="text-gray-500 text-sm">San Francisco • Hybrid</p>
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        <span
+                                            class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">AWS</span>
+                                        <span
+                                            class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Docker</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-4 w-full text-blue-500 hover:text-blue-600 text-sm font-medium">
+                        View All Jobs
+                    </button>
+                </div>
+
+
+                <!-- Suggested Connections -->
+
+                <div class="bg-white rounded-xl shadow-sm p-4">
+                    <h3 class="font-semibold mb-4">Suggested Connections</h3>
+                    <div class="space-y-4">
+                        <div class="items-center justify-between">
+                            @foreach ($users as $user)
+                                <div class="flex items-center space-x-3" id="user-{{ $user->id }}">
+                                    <img src="{{ Storage::url($user->profile_picture ?? 'images/placeholder.jpg') }}"
+                                        alt="User" class="w-10 h-10 rounded-full" />
+                                    <div>
+                                        <h4 class="font-medium">{{ $user->name }}</h4>
+                                    </div>
+
+                                    @if ($user->connectionStatus === 'accepter')
+                                        <a href=""  class="text-blue-500 hover:text-blue-600">Message</a>
+                                    @elseif ($user->connectionStatus === 'en attente')
+                                        <span class="text-blue-500 hover:text-blue-600">en attente</span>
+                                    @else
+                                        <button class="text-blue-500 hover:text-blue-600 connect-btn"
+                                            data-user-id="{{ $user->id }}">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 4v16m8-8H4" />
+                                            </svg>
+                                        </button>
+                                    @endif
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
 
-                <div class="p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                    <div class="flex items-start space-x-3">
-                        <img src="" alt="Company" class="w-10 h-10 rounded" />
-                        <div>
-                            <h4 class="font-medium">DevOps Engineer</h4>
-                            <p class="text-gray-500 text-sm">CloudScale Solutions</p>
-                            <p class="text-gray-500 text-sm">San Francisco • Hybrid</p>
-                            <div class="mt-2 flex flex-wrap gap-2">
-                                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">AWS</span>
-                                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Docker</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
-            <button class="mt-4 w-full text-blue-500 hover:text-blue-600 text-sm font-medium">
-                View All Jobs
-            </button>
-        </div>
-
-        <!-- Suggested Connections -->
-        <div class="bg-white rounded-xl shadow-sm p-4">
-            @if ($user->connectionStatus === 'accepter')
-                <a href="" class="text-blue-500 hover:text-blue-600">Message</a>
-            @elseif ($user->connectionStatus === 'en attente')
-                <span class="text-blue-500 hover:text-blue-600">en attente</span>
-            @else
-                <button onclick="connect('{{ $user->id }}')"
-                    class="text-blue-500 hover:text-blue-600 connect-btn">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                </button>
-            @endif
         </div>
     </div>
+
+
 
     <script defer>
         ///////////////////Script for image preview//////////////////////////
@@ -851,46 +809,55 @@
                 .catch(error => console.error('Erreur:', error));
         }
 
+        document.addEventListener('DOMContentLoaded', function () {
+        // Récupérer tous les boutons de connexion
+        const connectButtons = document.querySelectorAll('.connect-btn');
 
-        async function connect(userId) {
-            try {
-                // Fix the dynamic URL using backticks
-                const response = await fetch(`/users/${userId}/connection`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    }
-                });
+        connectButtons.forEach(button => {
+            // Ajoutez l'événement 'click' à chaque bouton
+            button.addEventListener('click', function() {
+                const userId = button.getAttribute('data-user-id');
+                connect(userId);
+            });
+        });
+    });
 
-                const data = await response.json();
-
-                if (data.success) {
-                    // console.log('success');
-
-                    // Fix the dynamic ID using backticks
-                    const userElement = document.getElementById(`user-${userId}`);
-                    // console.log(userElement);
-
-                    if (userElement) {
-                        // Fix the dynamic query for connect-btn
-                        const button = userElement.querySelector('.connect-btn');
-                        // console.log(button);
-
-                        if (button) {
-                            button.remove();
-                        }
-
-                        const pendingText = document.createElement('span');
-                        pendingText.className = "text-blue-500 hover:text-blue-600";
-                        pendingText.textContent = "en attente";
-                        userElement.appendChild(pendingText);
-                    }
+    async function connect(userId) {
+        try {
+            const response = await fetch(`/users/${userId}/connection`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
                 }
-            } catch (error) {
-                console.error('Error Connecting:', error);
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                console.log('success');
+
+                const userElement = document.getElementById(`user-${userId}`);
+                console.log(userElement);
+
+                if (userElement) {
+                    const button = userElement.querySelector('.connect-btn');
+                    console.log(button);
+
+                    if (button) {
+                        button.remove();
+                    }
+
+                    const pendingText = document.createElement('span');
+                    pendingText.className = "text-blue-500 hover:text-blue-600";
+                    pendingText.textContent = "en attente";
+                    userElement.appendChild(pendingText);
+                }
             }
+        } catch (error) {
+            console.error('Error Connecting:', error);
         }
+    }
 
         $(document).ready(function() {
             $('#commentForm').submit(function(event) {
@@ -961,18 +928,41 @@
         // Listen for the broadcasted event
         channel.bind("Illuminate\\Notifications\\Events\\BroadcastNotificationCreated", function(data) {
             console.log("Notification received:", data);
-            alert(data.content);
-
 
             // Check if 'comment' exists in the data
+            const userId = {{ auth()->id() }};
             if (data.content) {
-                alert(data.content);
+                if (data.user_id !== userId) {
+                    alert(data.content);
+                }
             } else {
                 alert('No comment found in the data!');
             }
         });
+
+        ///////////////////////////share/////////////////////////////////////
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const shareButton = document.getElementById("shareButton");
+            const shareMenu = document.getElementById("shareMenu");
+
+            shareButton.addEventListener('click', function() {
+                shareMenu.classList.remove('hidden');
+            });
+        });
+
+
+        function copyLink(url) {
+            // Créer un élément de texte temporaire
+            var tempInput = document.createElement('input');
+            document.body.appendChild(tempInput);
+            tempInput.value = url;
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert("Lien copié !");
+        }
     </script>
 
-</body>
-
-</html>
+</x-app-layout>

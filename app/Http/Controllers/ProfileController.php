@@ -9,7 +9,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use App\Models\User;
+use App\Models\Post;
+use App\Models\Hashtag;
+use App\Models\Project;
 use Illuminate\Support\Facades\Storage;
+use App\Models\connection;
 
 
 class ProfileController extends Controller
@@ -60,19 +64,22 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
-
     public function show($username)
     {
         $user = User::where('name', $username)->firstOrFail();
+        $posts = Post::where('user_id', auth()->id())->get();
         $connections = $user->connections;
-
+        $utilisateur = auth()->user();
+        $languages = $user->languages;
+       $projets=Project::where('user_id', auth()->id())->get();
         if (Auth::user()->name !== $user->name) {
             abort(403, "Accès interdit");
         }
-
-        return view('user.profile', compact('user','connections'));
+        $connections = Connection::where('user_id', auth()->id())->get();
+    
+        return view('user.profile', compact('user', 'connections', 'posts','languages','projets','connections'));
     }
-
+    
     public function modifier()
     {
         return view('profile.modifier');

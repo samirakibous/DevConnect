@@ -52,7 +52,7 @@ class User extends Authenticatable
 
     public function connections()
     {
-        return $this->belongsToMany(User::class, 'connections', 'user_id', 'connected_user_id');
+        return $this->belongsToMany(User::class, 'connections', 'connected_user_id', 'user_id');
     }
 
 
@@ -63,10 +63,11 @@ class User extends Authenticatable
     }
 
 
-    public function certificate()
+    public function certifications()
     {
-        return $this->hasMany(certification::class);
+        return $this->hasMany(Certification::class);
     }
+
 
     // Dans le modèle User
     public function competences()
@@ -94,6 +95,9 @@ class User extends Authenticatable
 
     public function languages()
     {
-        return $this->belongsToMany(Language::class, 'languages_user');
+        return $this->belongsToMany(Language::class, 'languages_user','user_id', 'language_id');
     }
-}
+    public function projets()
+    {
+        return $this->hasMany(Project::class); 
+}}

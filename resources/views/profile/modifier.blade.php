@@ -56,13 +56,6 @@
                             class="mt-2 p-2 border rounded w-full" placeholder="https://github.com/ton-profil">
                     </div>
 
-                    <!-- certification -->
-                    <div class="mt-6">
-                        <h3 class="text-lg font-semibold">Certification</h3>
-                        <textarea id="certification" name="certification">{{ old('certification', Auth::user()->certifications) }}</textarea>
-                    </div>
-
-
                     <!-- Description -->
                     <div class="mt-6">
                         <h3 class="text-lg font-semibold">Description</h3>
@@ -74,6 +67,20 @@
 
                 </form>
 
+                <div class="mt-6">
+                    <form action="{{ route('certifications.store') }}" method="POST">
+                        @csrf
+                        <h3 class="text-lg font-semibold">Mes Certifications</h3>
+                        <input type="text" id="certifications" class="border p-2 w-full"
+                            placeholder="Ajoutez une certification...">
+                        <input type="hidden" name="certifications" id="certifications_hidden">
+                        <div id="certification-list" class="mt-2 flex flex-wrap gap-2"></div>
+
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded mt-4">
+                            Enregistrer les certifications
+                        </button>
+                    </form>
+                </div>
 
                 <div class="mt-6">
                     <form action="{{ route('competences.store') }}" method="POST">
@@ -87,19 +94,46 @@
                             compétences</button>
                     </form>
                 </div>
-
                 <div class="mt-6">
-                    <form action="{{ route('add-programming-language.create') }}" method="POST">
+                    <form action="{{ route('add-programming-language.store') }}" method="POST" onsubmit="updateHiddenInput()">
                         @csrf
                         <h3 class="text-lg font-semibold">Langages de programmation</h3>
-                        <input type="text" id="langages" name="langages[]" class="border p-2 w-full"
-                            placeholder="Ajoutez une compétence...">
+                        
+                        <!-- Input pour entrer un langage -->
+                        <input type="text" id="langages" class="border p-2 w-full" placeholder="Ajoutez un langage de programmation...">
+                        
+                        <!-- Champ caché qui contiendra la liste des langages -->
                         <input type="hidden" name="langages" id="langages_hidden">
+                        
+                        <!-- Liste des langages affichés -->
                         <div id="langages-list" class="mt-2 flex flex-wrap gap-2"></div>
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Enregistrer les
-                            compétences</button>
+                        
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded mt-4">
+                            Enregistrer les langages
+                        </button>
                     </form>
                 </div>
+
+                <div class="mt-6">
+                    <form action="{{ route('projects.store') }}" method="POST">
+                        @csrf
+                        <h3 class="text-lg font-semibold">Ajout d'un projet</h3>
+                
+                        <!-- Input pour entrer le titre du projet -->
+                        <input type="text" name="title" class="border p-2 w-full mt-4" placeholder="Titre du projet..." required>
+                
+                        <!-- Input pour entrer la description du projet -->
+                        <textarea name="description" class="border p-2 w-full mt-4" placeholder="Description du projet..." required></textarea>
+                
+                        <!-- Champ caché pour stocker l'ID de l'utilisateur (si nécessaire) -->
+                        <input type="hidden" name="user_id" value="{{ Auth::id() }}">
+                
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded mt-4">
+                            Ajouter le projet
+                        </button>
+                    </form>
+                </div>
+                
 
             </div>
         </div>
@@ -152,6 +186,78 @@
         function updateHiddenInput() {
             // Mettre à jour la valeur de l'input caché avec les compétences sous forme de chaîne
             competencesHidden.value = competences.join(',');
+        }
+
+
+        ///////////////////script pour ajouter plusieurs certifications///////////////////////
+        const inputCertif = document.getElementById('certifications');
+        const listCertif = document.getElementById('certification-list');
+        const certificationsHidden = document.getElementById('certifications_hidden');
+        let certifications = [];
+
+        inputCertif.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                let value = inputCertif.value.trim();
+                if (value !== '' && !certifications.includes(value)) {
+                    certifications.push(value);
+                    updateCertificationsList();
+                    inputCertif.value = ''; // Réinitialiser le champ après ajout
+                }
+            }
+        });
+
+        function removeCertification(certif) {
+            certifications = certifications.filter(c => c !== certif);
+            updateCertificationsList();
+        }
+
+        function updateCertificationsList() {
+            // Mise à jour de l'affichage des certifications
+            listCertif.innerHTML = certifications.map(c =>
+                `<span class="bg-blue-500 text-white px-2 py-1 rounded flex items-center gap-2">
+            ${c} 
+            <button type="button" class="text-white font-bold" onclick="removeCertification('${c}')">x</button>
+        </span>`
+            ).join('');
+
+            // Mettre à jour l'input caché avec les certifications sous forme de chaîne séparée par des virgules
+            certificationsHidden.value = certifications.join(','); // Utilisation de join pour séparer par des virgules
+        }
+
+        ///////////////////script pour ajouter plusieurs langages de programmations///////////////////////
+        const inputLang = document.getElementById('langages');
+        const listLang = document.getElementById('langages-list');
+        const langagesHidden = document.getElementById('langages_hidden');
+        let langages = [];
+
+        inputLang.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                let value = inputLang.value.trim();
+                if (value !== '' && !langages.includes(value)) {
+                    langages.push(value);
+                    updateLangagesList();
+                    inputLang.value = ''; // Réinitialiser le champ après ajout
+                }
+            }
+        });
+
+        function removeLangage(lang) {
+            langages = langages.filter(l => l !== lang);
+            updateLangagesList();
+        }
+
+        function updateLangagesList() {
+            listLang.innerHTML = langages.map(l =>
+                `<span class="bg-blue-500 text-white px-2 py-1 rounded flex items-center gap-2">
+            ${l} 
+            <button type="button" class="text-white font-bold" onclick="removeLangage('${l}')">x</button>
+        </span>`
+            ).join('');
+
+            // Mettre à jour l'input caché avec les langages sous forme de chaîne séparée par des virgules
+            langagesHidden.value = langages.join(',');
         }
     </script>
 </body>

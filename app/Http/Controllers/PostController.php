@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
 use phpDocumentor\Reflection\DocBlock\Tag;
 use App\Http\Controllers\Storage;
 use Illuminate\Support\Facades\Auth;
+use App\Models\connection;
+use App\Models\Conversation;
 
 
 class PostController extends Controller
@@ -28,19 +30,34 @@ class PostController extends Controller
 
         $hashtags = hashtag::all();
 
+        $conversation = Conversation::all();
+        
+
         $currentUser = auth()->user();
         foreach ($users as $user) {
             $user->competences = $user->competences;
+            $user->connectionStatus = $this->getConnectionStatus($user->id);
         }
+        $topHashtags = Hashtag::withCount('posts')
+        ->orderByDesc('posts_count')
+        ->limit(3)
+        ->get();
 
         return view('posts.index', [
             'posts' => $posts,
             'hashtags' => $hashtags,
             'users' => $users,
-            'user' => $currentUser // Passer l'utilisateur authentifié à la vue
+            'user' => $currentUser,
+            'topHashtags'=>$topHashtags, // Passer l'utilisateur authentifié à la vue
         ]);
     }
 
+    public function getConnectionStatus($userId) {
+        // Récupérer le statut de connexion depuis la table de connexions
+        $connection = Connection::where('user_id', $userId)->first();
+    
+        return $connection ? $connection->status : 'none';  // Si pas de connexion, retourner 'none'
+    }
 
     public function store(Request $request)
     {
@@ -202,7 +219,6 @@ class PostController extends Controller
     }
 
 
-    // Dans PostController.php
 
     public function show(Request $request)
     {
@@ -216,9 +232,17 @@ class PostController extends Controller
 
         return view('posts.show', compact('users', 'posts'));
     }
+//partage
 
+    public function viewPost($id)
+    {
+        $post = Post::findOrFail($id);
+        $users = User::all(); 
+        $posts = Post::all();
 
-
+        return view('posts.show', compact('post', 'users','posts'));
+    }
+    
 
 
 }

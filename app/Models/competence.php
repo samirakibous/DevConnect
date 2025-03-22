@@ -11,10 +11,8 @@ class Competence extends Model
 
     protected $fillable = ['name'];
 
-    // Dans le modèle Competence
-public function users()
-{
-    return $this->belongsToMany(User::class, 'competence_user')->withTimestamps();
-}
-
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'competence_user')->withTimestamps();
+    }
 }

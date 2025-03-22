@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Certification extends Model
+class Project extends Model
 {
     use HasFactory;
-    protected $fillable =  ['name', 'user_id'];
+    protected $fillable = ['title', 'description', 'user_id'];
 
     public function user()
     {

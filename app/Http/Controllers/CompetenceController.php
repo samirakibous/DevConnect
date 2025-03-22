@@ -32,4 +32,5 @@ class CompetenceController extends Controller
 
         return back()->with('success', 'Compétences mises à jour avec succès.');
     }
+    
 }
